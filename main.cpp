@@ -7,8 +7,10 @@
 
 int main() {
   TgBot::Bot bot("5246372133:AAH3XvfTmCJIywDsL4acJZcGu7F8suep4DY");
-  std::vector<int64_t> users;
-  const int64_t admin_id = 379420471;
+  using UserId = int64_t;
+  std::vector<UserId> users;
+  const UserId admin_id = 379420471;
+  const short max_message_size = 4096;
 
   bot.getEvents().onCommand("start", [&bot](TgBot::Message::Ptr message) {
     bot.getApi().sendMessage(
@@ -29,14 +31,14 @@ int main() {
     if (StringTools::startsWith(message->text, "/register"))
       return;
     if (message->from->id == admin_id) {
+      auto message_lenght = message->text.length();
       printf("Admin wrote: %s\n", message->text.c_str());
       for (auto user_id : users) {
-        auto message_lenght = message->text.length();
-        if (message_lenght > 4096) {
-          int i = 0; // TODO: Should it be int?
-          for (; i < message_lenght; i += 4096) {
-            bot.getApi().sendMessage(user_id,
-                                     message->text.substr(i, i + 4096));
+        if (message_lenght > max_message_size) {
+          std::basic_string<char>::size_type i = 0;
+          for (; i < message_lenght; i += max_message_size) {
+            bot.getApi().sendMessage(
+                user_id, message->text.substr(i, i + max_message_size));
           }
           if (i != message_lenght) {
             bot.getApi().sendMessage(user_id,
