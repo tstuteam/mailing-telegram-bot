@@ -5,39 +5,46 @@
 #include <tgbot/tgbot.h>
 #include <vector>
 
-const int64_t admin_id = 379420471;
-
 int main() {
   TgBot::Bot bot("5246372133:AAH3XvfTmCJIywDsL4acJZcGu7F8suep4DY");
   std::vector<int64_t> users;
+  const int64_t admin_id = 379420471;
 
   bot.getEvents().onCommand("start", [&bot](TgBot::Message::Ptr message) {
-    bot.getApi().sendMessage(message->chat->id, "Hi!");
+    bot.getApi().sendMessage(
+        message->chat->id,
+        "Hi! It's a mailing bot! Try to register with `/register` command.");
   });
-  bot.getEvents().onCommand("register",
-                            [&bot, &users](TgBot::Message::Ptr message) {
-                              if (std::find(users.begin(), users.end(),
-                                            message->from->id) != users.end()) {
-                                return;
-                              } else {
-                                if (message->from->id == admin_id)
-                                  return;
-                                else {
-                                  users.emplace_back(message->from->id);
-                                }
-                              }
-                            });
+  bot.getEvents().onCommand("register", [&bot,
+                                         &users](TgBot::Message::Ptr message) {
+    if (std::find(users.begin(), users.end(), message->from->id) != users.end())
+      return;
+    if (message->from->id == admin_id)
+      return;
+    users.emplace_back(message->from->id);
+  });
   bot.getEvents().onAnyMessage([&bot, &users](TgBot::Message::Ptr message) {
-    if (StringTools::startsWith(message->text, "/start")) {
+    if (StringTools::startsWith(message->text, "/start"))
       return;
-    }
-    if (StringTools::startsWith(message->text, "/register")) {
+    if (StringTools::startsWith(message->text, "/register"))
       return;
-    }
     if (message->from->id == admin_id) {
       printf("Admin wrote: %s\n", message->text.c_str());
       for (auto user_id : users) {
-        bot.getApi().sendMessage(user_id, message->text);
+        auto message_lenght = message->text.length();
+        if (message_lenght > 4096) {
+          int i = 0; // TODO: Should it be int?
+          for (; i < message_lenght; i += 4096) {
+            bot.getApi().sendMessage(user_id,
+                                     message->text.substr(i, i + 4096));
+          }
+          if (i != message_lenght) {
+            bot.getApi().sendMessage(user_id,
+                                     message->text.substr(message_lenght - i));
+          }
+        } else {
+          bot.getApi().sendMessage(user_id, message->text);
+        }
       }
     }
   });
