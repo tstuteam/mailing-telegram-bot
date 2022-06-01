@@ -9,21 +9,24 @@ const int64_t admin_id = 379420471;
 
 int main() {
   TgBot::Bot bot("5246372133:AAH3XvfTmCJIywDsL4acJZcGu7F8suep4DY");
-  std::vector<TgBot::User *> users;
+  std::vector<int64_t> users;
 
   bot.getEvents().onCommand("start", [&bot](TgBot::Message::Ptr message) {
     bot.getApi().sendMessage(message->chat->id, "Hi!");
   });
-  bot.getEvents().onCommand("register", [&bot,
-                                         &users](TgBot::Message::Ptr message) {
-    if (std::find(users.begin(), users.end(), message->from) != users.end()) {
-      return;
-    } else {
-      if (message->from->id == admin_id)
-        return;
-      users.emplace_back(&message->from);
-    }
-  });
+  bot.getEvents().onCommand("register",
+                            [&bot, &users](TgBot::Message::Ptr message) {
+                              if (std::find(users.begin(), users.end(),
+                                            message->from->id) != users.end()) {
+                                return;
+                              } else {
+                                if (message->from->id == admin_id)
+                                  return;
+                                else {
+                                  users.emplace_back(message->from->id);
+                                }
+                              }
+                            });
   bot.getEvents().onAnyMessage([&bot, &users](TgBot::Message::Ptr message) {
     if (StringTools::startsWith(message->text, "/start")) {
       return;
@@ -33,8 +36,8 @@ int main() {
     }
     if (message->from->id == admin_id) {
       printf("Admin wrote: %s\n", message->text.c_str());
-      for (auto user : users) {
-        bot.getApi().sendMessage(user->id, message->text);
+      for (auto user_id : users) {
+        bot.getApi().sendMessage(user_id, message->text);
       }
     }
   });
