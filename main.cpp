@@ -31,18 +31,18 @@ int main() {
     if (StringTools::startsWith(message->text, "/register"))
       return;
     if (message->from->id == admin_id) {
-      auto message_lenght = message->text.length();
+      auto message_length = message->text.length();
       printf("Admin wrote: %s\n", message->text.c_str());
       for (auto user_id : users) {
-        if (message_lenght > max_message_size) {
+        if (message_length > max_message_size) {
           std::basic_string<char>::size_type i = 0;
-          for (; i < message_lenght; i += max_message_size) {
+          for (; i < message_length; i += max_message_size) {
             bot.getApi().sendMessage(
                 user_id, message->text.substr(i, i + max_message_size));
           }
-          if (i != message_lenght) {
+          if (i != message_length) {
             bot.getApi().sendMessage(user_id,
-                                     message->text.substr(message_lenght - i));
+                                     message->text.substr(message_length - i));
           }
         } else {
           bot.getApi().sendMessage(user_id, message->text);
