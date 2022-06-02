@@ -31,4 +31,5 @@
 *.out
 *.app
 
-main
+build/
+.vscode/
