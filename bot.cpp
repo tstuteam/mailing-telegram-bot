@@ -9,12 +9,12 @@
  *
  */
 
-#include "lib.h"
-
 #include <tgbot/tgbot.h>
 
 #include <algorithm>
 #include <stdexcept>
+
+#include "lib.h"
 
 int main(const int argc, char const *const *argv) {
   if (argc != 4) {
@@ -41,7 +41,7 @@ int main(const int argc, char const *const *argv) {
       throw std::invalid_argument("Check your corrupted DB");
     }
   } catch (const std::exception &e) {
-    std::cerr << "DB ERROR: " << e.what() << '\n';
+    std::cerr << "DB EXCEPTION: " << e.what() << '\n';
     return -1;
   }
   auto users = users_or_null.value();
@@ -60,43 +60,27 @@ int main(const int argc, char const *const *argv) {
           MailingApp::update_db(db_path, users);
       });
 
-  bot.getEvents().onAnyMessage([&bot, &users, &commands,
-                                &admin_id](TgBot::Message::Ptr message) {
-    std::cout << "User with ID " << message->from->id << " wrote message\n";
-    try {
-      // if (message->photo.get() != nullptr) { sendPhoto(...) }
-      for (auto &&command : commands) {
-        if (StringTools::startsWith(message->text, "/" + command))
-          return;
-      }
-      if (message->from->id == admin_id) {
-        const short max_message_length = 4096;
-        auto message_length = message->text.length();
-        std::cout << "Admin wrote: " << message->text << '\n';
-        for (auto &&user_id : users) {
-          // It's ugly.
-          if (message_length > max_message_length) {
-            std::basic_string<char>::size_type sended_chars = 0;
-            for (; sended_chars < message_length;
-                 sended_chars += max_message_length) {
-              bot.getApi().sendMessage(
-                  user_id,
-                  message->text.substr(sended_chars,
-                                       sended_chars + max_message_length));
-            }
-            if (sended_chars != message_length) {
-              bot.getApi().sendMessage(
-                  user_id, message->text.substr(message_length - sended_chars));
-            }
-          } else {
-            bot.getApi().sendMessage(user_id, message->text);
+  bot.getEvents().onAnyMessage(
+      [&bot, &users, &commands, &admin_id](TgBot::Message::Ptr message) {
+        std::cout << "User with ID " << message->from->id << " send message\n";
+        try {
+          // if (message->photo.get() != nullptr) { sendPhoto(...) }
+          for (auto &&command : commands) {
+            if (StringTools::startsWith(message->text, "/" + command))
+              return;
           }
+          if (message->from->id == admin_id) {
+            std::cout << "Admin wrote: " << message->text << '\n';
+            for (auto &&user_id : users) {
+              for (auto &&msg : MailingApp::split_message(message->text)) {
+                bot.getApi().sendMessage(user_id, msg);
+              }
+            }
+          }
+        } catch (const TgBot::TgException &e) {
+          std::cerr << "TgBot EXCEPTION: " << e.what() << '\n';
         }
-      }
-    } catch (const TgBot::TgException &e) {
-      std::cerr << "TgBot EXCEPTION: " << e.what() << '\n';
-    }
-  });
+      });
 
   try {
     std::cout << "Bot username: " << bot.getApi().getMe()->username << '\n';

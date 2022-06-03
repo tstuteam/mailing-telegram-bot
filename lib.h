@@ -16,6 +16,7 @@
 #include <iostream>
 #include <optional>
 #include <set>
+#include <vector>
 
 namespace MailingApp {
 /**
@@ -23,7 +24,21 @@ namespace MailingApp {
  */
 using UserId = int64_t;
 
+/**
+ * @brief Type aliasing for Command in Chat.
+ */
 using Command = std::string;
+
+/**
+ * @brief Split message with max length.
+ *
+ * @param message Long message.
+ * @param max Max length of one unit of message.
+ * @return std::vector<std::string> Message splitted in units with some max
+ * size.
+ */
+std::vector<std::string> split_message(const std::string message,
+                                       const int max = 4096);
 
 /**
  * @brief Read and parse database file.
@@ -31,11 +46,11 @@ using Command = std::string;
  * @param path Filepath to database file.
  * @return std::optional<std::set<MailingApp::UserId>> Users ID's.
  */
-std::optional<std::set<MailingApp::UserId>> read_db(const std::string path); 
+std::optional<std::set<MailingApp::UserId>> read_db(const std::string path);
 
 /**
  * @brief Erasing database and writing new users to this database.
- * 
+ *
  * @param path Filepath to users database.
  * @param users Users that is going to be written to database.
  */

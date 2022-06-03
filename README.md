@@ -7,19 +7,18 @@
 ## Используемые библиотеки и зависимости
 
 - Компилятор - `g++` или `clang++`
+- Система сборки - `Make`
 - Telegram Bot API - [tgbot-cpp](https://github.com/reo7sp/tgbot-cpp)
 
 ## Как собрать и запустить проект
-
-Сначала надо изменить `id` админа, и по-хорошему создать своего бота в [Bot Father](https://t.me/botfather).
 
 Установить все зависимости, компилятор.
 
 Запустить терминал и написать следующее:
 
 ```console
-sh build.sh
-./bot
+make all
+./bot <token> <admin id> <path to existing empty file>
 ```
 
 ## Алгоритм работы

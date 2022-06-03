@@ -1,5 +1,13 @@
 #include "lib.h"
 
+std::vector<std::string> MailingApp::split_message(const std::string message,
+                                                   const int max) {
+  if (message.length() == 0)
+    return std::vector<std::string>();
+  return std::vector<std::string>{
+      message.substr(0, max), split_message(message.substr(max), max).back()};
+}
+
 std::optional<std::set<MailingApp::UserId>>
 MailingApp::read_db(const std::string path) {
   std::set<MailingApp::UserId> result;
