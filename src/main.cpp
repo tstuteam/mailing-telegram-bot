@@ -14,49 +14,75 @@
 #include <tgbot/tgbot.h>
 
 #include <algorithm>
-#include <csignal>
-#include <cstdlib>
-#include <iostream>
-#include <vector>
+#include <stdexcept>
 
-int main() {
-  TgBot::Bot bot(MailingApp::token);
-  std::vector<MailingApp::UserId> users;
-  const short max_message_size = 4096;
+int main(const int argc, char const *const *argv) {
+  if (argc != 4) {
+    std::cout << "Usage: " << argv[0]
+              << " <bot token> <admin id> <text file>\n";
+    return -1;
+  }
+  const std::string token = argv[1];
+  const MailingApp::UserId admin_id = std::stoll(argv[2], nullptr);
+  const std::string db_path = argv[3];
+  const std::set<MailingApp::Command> commands = {"start", "register",
+                                                  "unregister"};
 
+  TgBot::Bot bot(token);
   bot.getEvents().onCommand("start", [&bot](TgBot::Message::Ptr message) {
-    std::string welcome = "Hi! It's a mailing bot!"
-                          "Try to register with `/register` command.";
+    const std::string welcome = "Hi! It's a mailing bot!"
+                                "Try to register with `/register` command.";
     bot.getApi().sendMessage(message->chat->id, welcome);
   });
-  bot.getEvents().onCommand("register", [&users](TgBot::Message::Ptr message) {
-    // If user is already registered.
-    // It's ugly. Can't be easily understood.
-    if (std::find(users.begin(), users.end(), message->from->id) != users.end())
-      return;
-    // Don't need to register admin.
-    if (message->from->id == MailingApp::admin_id)
-      return;
-    // Otherwise register.
-    users.emplace_back(message->from->id);
-  });
-  bot.getEvents().onAnyMessage([&bot, &users](TgBot::Message::Ptr message) {
+
+  const auto users_or_null = MailingApp::read_db(db_path);
+  try {
+    if (!users_or_null.has_value()) {
+      throw std::invalid_argument("Check your corrupted DB");
+    }
+  } catch (const std::exception &e) {
+    std::cerr << "DB ERROR: " << e.what() << '\n';
+    return -1;
+  }
+  auto users = users_or_null.value();
+  bot.getEvents().onCommand(
+      "register", [&users, &db_path, &admin_id](TgBot::Message::Ptr message) {
+        if (message->from->id == admin_id)
+          return;
+        if (users.insert(message->from->id).second)
+          MailingApp::update_db(db_path, users);
+      });
+  bot.getEvents().onCommand(
+      "unregister", [&users, &db_path, &admin_id](TgBot::Message::Ptr message) {
+        if (message->from->id == admin_id)
+          return;
+        if (users.erase(message->from->id) != 0)
+          MailingApp::update_db(db_path, users);
+      });
+
+  bot.getEvents().onAnyMessage([&bot, &users, &commands,
+                                &admin_id](TgBot::Message::Ptr message) {
+    std::cout << "User with ID " << message->from->id << " wrote message\n";
     try {
-      // if message->photo.get() != nullptr -> {sendPhoto(...)}
-      if (StringTools::startsWith(message->text, "/start"))
-        return;
-      if (StringTools::startsWith(message->text, "/register"))
-        return;
-      if (message->from->id == MailingApp::admin_id) {
+      // if (message->photo.get() != nullptr) { sendPhoto(...) }
+      for (auto &&command : commands) {
+        if (StringTools::startsWith(message->text, "/" + command))
+          return;
+      }
+      if (message->from->id == admin_id) {
+        const short max_message_length = 4096;
         auto message_length = message->text.length();
         std::cout << "Admin wrote: " << message->text << '\n';
-        for (auto user_id : users) {
+        for (auto &&user_id : users) {
           // It's ugly.
-          if (message_length > max_message_size) {
+          if (message_length > max_message_length) {
             std::basic_string<char>::size_type sended_chars = 0;
-            for (; sended_chars < message_length; sended_chars += max_message_size) {
+            for (; sended_chars < message_length;
+                 sended_chars += max_message_length) {
               bot.getApi().sendMessage(
-                  user_id, message->text.substr(sended_chars, sended_chars + max_message_size));
+                  user_id,
+                  message->text.substr(sended_chars,
+                                       sended_chars + max_message_length));
             }
             if (sended_chars != message_length) {
               bot.getApi().sendMessage(
@@ -68,14 +94,8 @@ int main() {
         }
       }
     } catch (const TgBot::TgException &e) {
-      std::cerr << "EXCEPTION: " << e.what() << '\n';
+      std::cerr << "TgBot EXCEPTION: " << e.what() << '\n';
     }
-  });
-
-  // Kill proccess with Ctrl+C.
-  signal(SIGINT, [](int s) {
-    std::cout << "SIGINT got: " << s << '\n';
-    exit(EXIT_SUCCESS);
   });
 
   try {
@@ -89,5 +109,5 @@ int main() {
     std::cerr << "error: " << e.what() << '\n';
   }
 
-  return EXIT_SUCCESS;
+  return 0;
 }

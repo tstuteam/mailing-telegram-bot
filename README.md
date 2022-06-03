@@ -7,26 +7,19 @@
 ## Используемые библиотеки и зависимости
 
 - Компилятор - `g++` или `clang++`
-- Система сборки - `CMake`
 - Telegram Bot API - [tgbot-cpp](https://github.com/reo7sp/tgbot-cpp)
-- Redis Client - [redis-plus-plus](https://github.com/sewenew/redis-plus-plus)
 
 ## Как собрать и запустить проект
 
 Сначала надо изменить `id` админа, и по-хорошему создать своего бота в [Bot Father](https://t.me/botfather).
-
-Изменить токен бота (см. в `src/lib.h`).
 
 Установить все зависимости, компилятор.
 
 Запустить терминал и написать следующее:
 
 ```console
-mkdir build
-cd build
-cmake ..
-make
-./mailingbot
+sh build.sh
+./bot
 ```
 
 ## Алгоритм работы
