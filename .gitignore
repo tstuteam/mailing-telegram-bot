@@ -32,5 +32,6 @@
 *.app
 
 bot
+.idea/
 .vscode/
 testing.sh

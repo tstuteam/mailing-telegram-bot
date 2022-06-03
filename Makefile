@@ -18,7 +18,7 @@ options:
 .cpp.o:
 	${CC} -c ${CFLAGS} $<
 
-bot: ${OBJ}
+bot: $(OBJ)
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
 clean:
