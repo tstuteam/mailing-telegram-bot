@@ -1,21 +1,21 @@
 #include "lib.h"
 
-std::vector<std::string> MailingApp::split_message(const std::string message,
-                                                   const int max) {
-  if (message.length() == 0)
-    return std::vector<std::string>();
+std::vector<std::string> MailingApp::split_message(const std::string &message,
+                                                   size_t max) {
+  if (message.length() < max)
+    return std::vector<std::string>{message};
   return std::vector<std::string>{
       message.substr(0, max), split_message(message.substr(max), max).back()};
 }
 
 std::optional<std::set<MailingApp::UserId>>
-MailingApp::read_db(const std::string path) {
+MailingApp::read_db(const std::string &path) {
   std::set<MailingApp::UserId> result;
   std::string line;
   std::ifstream file(path);
   if (file.is_open()) {
     while (std::getline(file, line)) {
-      if (line.size() == 0)
+      if (line.empty())
         continue;
       std::size_t pos{};
       try {
@@ -38,11 +38,11 @@ MailingApp::read_db(const std::string path) {
     return std::nullopt;
   }
   file.close();
-  return std::optional<std::set<MailingApp::UserId>>(result);
+  return std::optional{result};
 }
 
-void MailingApp::update_db(const std::string path,
-                           const std::set<UserId> users) {
+void MailingApp::update_db(const std::string &path,
+                           const std::set<UserId> &users) {
   std::ofstream file(path);
   if (file.is_open()) {
     for (auto &&user : users) {

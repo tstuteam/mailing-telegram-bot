@@ -8,7 +8,7 @@
 
 - Компилятор - `g++` или `clang++`
 - Система сборки - `Make`
-- Telegram Bot API - [tgbot-cpp](https://github.com/reo7sp/tgbot-cpp)
+- Telegram Bot API - [tgbot-cpp](https://github.com/reo7sp/tgbot-cpp) (MIT LICENSE)
 
 ## Как собрать и запустить проект
 

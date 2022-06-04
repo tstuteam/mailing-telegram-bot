@@ -12,27 +12,44 @@
 #include <tgbot/tgbot.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <stdexcept>
 
 #include "lib.h"
 
 int main(const int argc, char const *const *argv) {
-  if (argc != 4) {
-    std::cout << "Usage: " << argv[0]
-              << " <bot token> <admin id> <text file>\n";
+  if (argc != 2) {
+    std::cout << "Usage: " << argv[0] << " <text file>\n";
     return -1;
   }
-  const std::string token = argv[1];
-  const MailingApp::UserId admin_id = std::stoll(argv[2], nullptr);
-  const std::string db_path = argv[3];
+  const std::string db_path = argv[1];
+  const std::string token(std::getenv("TELEGRAM_BOT_TOKEN"));
+  const MailingApp::UserId admin_id =
+      std::stoll(std::getenv("TELEGRAM_BOT_ADMIN_ID"), nullptr);
   const std::set<MailingApp::Command> commands = {"start", "register",
                                                   "unregister"};
 
   TgBot::Bot bot(token);
-  bot.getEvents().onCommand("start", [&bot](TgBot::Message::Ptr message) {
-    const std::string welcome = "Hi! It's a mailing bot!"
+
+  TgBot::InlineKeyboardMarkup::Ptr keyboard(new TgBot::InlineKeyboardMarkup);
+  std::vector<TgBot::InlineKeyboardButton::Ptr> row0;
+  TgBot::InlineKeyboardButton::Ptr registerButton(
+      new TgBot::InlineKeyboardButton);
+  registerButton->text = "register";
+  registerButton->callbackData = "register";
+  TgBot::InlineKeyboardButton::Ptr unregisterButton(
+      new TgBot::InlineKeyboardButton);
+  unregisterButton->text = "unregister";
+  unregisterButton->callbackData = "unregister";
+  row0.push_back(registerButton);
+  row0.push_back(unregisterButton);
+  keyboard->inlineKeyboard.push_back(row0);
+
+  bot.getEvents().onCommand("start", [&bot, &keyboard](
+                                         const TgBot::Message::Ptr &message) {
+    const std::string welcome = "Hi! It's a mailing bot! "
                                 "Try to register with `/register` command.";
-    bot.getApi().sendMessage(message->chat->id, welcome);
+    bot.getApi().sendMessage(message->chat->id, welcome, false, 0, keyboard);
   });
 
   const auto users_or_null = MailingApp::read_db(db_path);
@@ -46,22 +63,71 @@ int main(const int argc, char const *const *argv) {
   }
   auto users = users_or_null.value();
   bot.getEvents().onCommand(
-      "register", [&users, &db_path, &admin_id](TgBot::Message::Ptr message) {
-        if (message->from->id == admin_id)
-          return;
-        if (users.insert(message->from->id).second)
-          MailingApp::update_db(db_path, users);
+      "register", [&bot, &users, &db_path, &admin_id,
+                   &keyboard](const TgBot::Message::Ptr &message) {
+        std::string response{"registered"};
+        if (message->from->id == admin_id) {
+          response = "admin can't register to the system.";
+        } else if (!users.insert(message->from->id).second) {
+          response = "you're already registered to the system.";
+        } else {
+          response = "you're successfully registered to the system.";
+        }
+        MailingApp::update_db(db_path, users);
+        bot.getApi().sendMessage(message->chat->id, response, false, 0,
+                                 keyboard, "Markdown");
       });
   bot.getEvents().onCommand(
-      "unregister", [&users, &db_path, &admin_id](TgBot::Message::Ptr message) {
-        if (message->from->id == admin_id)
-          return;
-        if (users.erase(message->from->id) != 0)
-          MailingApp::update_db(db_path, users);
+      "unregister", [&bot, &users, &db_path, &admin_id,
+                     &keyboard](const TgBot::Message::Ptr &message) {
+        std::string response{"unregistered"};
+        if (message->from->id == admin_id) {
+          response = "admin can't unregister from the system.";
+        } else if (users.erase(message->from->id) == 0) {
+          response = "you're already unregistered from the system.";
+        } else {
+          response = "you're successfully unregistered from the system.";
+        }
+        MailingApp::update_db(db_path, users);
+        bot.getApi().sendMessage(message->chat->id, response, false, 0,
+                                 keyboard, "Markdown");
       });
-
+  bot.getEvents().onCallbackQuery(
+      [&bot, &users, &db_path, &admin_id,
+       &keyboard](const TgBot::CallbackQuery::Ptr &query) {
+        if (StringTools::startsWith(query->data, "register")) {
+          std::string response{"registered"};
+          if (query->from->id == admin_id) {
+            response = "admin can't register to the system.";
+          } else if (!users.insert(query->from->id).second) {
+            response = "you're already registered to the system.";
+          } else {
+            response = "you're successfully registered to the system.";
+          }
+          MailingApp::update_db(db_path, users);
+          bot.getApi().sendMessage(query->message->chat->id, response, false, 0,
+                                   keyboard, "Markdown");
+        }
+      });
+  bot.getEvents().onCallbackQuery(
+      [&bot, &users, &db_path, &admin_id,
+       &keyboard](const TgBot::CallbackQuery::Ptr &query) {
+        if (StringTools::startsWith(query->data, "unregister")) {
+          std::string response{"unregistered"};
+          if (query->from->id == admin_id) {
+            response = "admin can't unregister from the system.";
+          } else if (users.erase(query->from->id) == 0) {
+            response = "you're already unregistered from the system.";
+          } else {
+            response = "you're successfully unregistered from the system.";
+          }
+          MailingApp::update_db(db_path, users);
+          bot.getApi().sendMessage(query->message->chat->id, response, false, 0,
+                                   keyboard, "Markdown");
+        }
+      });
   bot.getEvents().onAnyMessage(
-      [&bot, &users, &commands, &admin_id](TgBot::Message::Ptr message) {
+      [&bot, &users, &commands, &admin_id](const TgBot::Message::Ptr &message) {
         std::cout << "User with ID " << message->from->id << " send message\n";
         try {
           // if (message->photo.get() != nullptr) { sendPhoto(...) }
@@ -84,6 +150,7 @@ int main(const int argc, char const *const *argv) {
 
   try {
     std::cout << "Bot username: " << bot.getApi().getMe()->username << '\n';
+    bot.getApi().deleteWebhook();
     TgBot::TgLongPoll longPoll(bot);
     while (true) {
       std::cout << "Long poll started\n";

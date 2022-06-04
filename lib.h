@@ -37,8 +37,8 @@ using Command = std::string;
  * @return std::vector<std::string> Message splitted in units with some max
  * size.
  */
-std::vector<std::string> split_message(const std::string message,
-                                       const int max = 4096);
+std::vector<std::string> split_message(const std::string &message,
+                                       size_t max = 4096);
 
 /**
  * @brief Read and parse database file.
@@ -46,7 +46,7 @@ std::vector<std::string> split_message(const std::string message,
  * @param path Filepath to database file.
  * @return std::optional<std::set<MailingApp::UserId>> Users ID's.
  */
-std::optional<std::set<MailingApp::UserId>> read_db(const std::string path);
+std::optional<std::set<MailingApp::UserId>> read_db(const std::string &path);
 
 /**
  * @brief Erasing database and writing new users to this database.
@@ -54,7 +54,7 @@ std::optional<std::set<MailingApp::UserId>> read_db(const std::string path);
  * @param path Filepath to users database.
  * @param users Users that is going to be written to database.
  */
-void update_db(const std::string path, const std::set<UserId> users);
+void update_db(const std::string &path, const std::set<UserId> &users);
 } // namespace MailingApp
 
 #endif /* SRC_LIB_H */
