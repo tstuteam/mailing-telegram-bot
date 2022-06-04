@@ -18,7 +18,7 @@
 
 ```console
 make all
-./bot <token> <admin id> <path to existing empty file>
+./bot <path to existing empty file>
 ```
 
 ## Алгоритм работы
