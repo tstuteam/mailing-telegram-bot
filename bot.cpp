@@ -39,33 +39,33 @@ int main(const int argc, char const *const *argv) {
 
   auto users = MailingApp::read_db(db_path);
 
+  auto handle_registering = [&bot, &users, &db_path,
+                             &admin_id](const TgBot::Message::Ptr &message,
+                                        const std::string &response,
+                                        const bool &callback_check) {
+    std::string msg;
+    if (message->from->id == admin_id) {
+      msg = "admin can't be " + response + ".";
+    } else if (callback_check) {
+      msg = "you're already " + response + ".";
+    } else {
+      msg = "you're successfully " + response + ".";
+      MailingApp::update_db(db_path, users);
+    }
+    bot.getApi().sendMessage(message->chat->id, msg);
+  };
+
   bot.getEvents().onCommand(
       "register",
-      [&bot, &users, &db_path, &admin_id](const TgBot::Message::Ptr &message) {
-        std::string response{"registered"};
-        if (message->from->id == admin_id) {
-          response = "admin can't register to the system.";
-        } else if (!users.insert(message->from->id).second) {
-          response = "you're already registered to the system.";
-        } else {
-          response = "you're successfully registered to the system.";
-          MailingApp::update_db(db_path, users);
-        }
-        bot.getApi().sendMessage(message->chat->id, response);
+      [&bot, &users, &handle_registering](const TgBot::Message::Ptr &message) {
+        handle_registering(message, "registered",
+                           !users.insert(message->from->id).second);
       });
   bot.getEvents().onCommand(
       "unregister",
-      [&bot, &users, &db_path, &admin_id](const TgBot::Message::Ptr &message) {
-        std::string response{"unregistered"};
-        if (message->from->id == admin_id) {
-          response = "admin can't unregister from the system.";
-        } else if (users.erase(message->from->id) == 0) {
-          response = "you're already unregistered from the system.";
-        } else {
-          response = "you're successfully unregistered from the system.";
-          MailingApp::update_db(db_path, users);
-        }
-        bot.getApi().sendMessage(message->chat->id, response);
+      [&bot, &users, &handle_registering](const TgBot::Message::Ptr &message) {
+        handle_registering(message, "unregistered",
+                           users.erase(message->from->id) == 0);
       });
   bot.getEvents().onAnyMessage(
       [&bot, &users, &admin_id](const TgBot::Message::Ptr &message) {
