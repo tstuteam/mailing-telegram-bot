@@ -12,13 +12,14 @@
 
 ## Как собрать и запустить проект
 
-Установить все зависимости, компилятор.
+Установить [Docker](https://docs.docker.com/engine/install/).
+
+Изменить в файле `docker-compose.debug.yml` данные [токена бота](https://t.me/botfather) и [id админа](https://t.me/userinfobot).
 
 Запустить терминал и написать следующее:
 
 ```console
-make all
-./bot <path to existing empty file>
+docker-compose -f docker-compose.debug.yml up
 ```
 
 ## Алгоритм работы
