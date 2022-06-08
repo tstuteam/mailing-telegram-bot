@@ -12,6 +12,12 @@
 
 ## Как собрать и запустить проект
 
+Клонировать проект и все его модули:
+
+```console
+git clone --recursive git@github.com:tstuteam/mailing-telegram-bot.git
+```
+
 Установить [Docker](https://docs.docker.com/engine/install/).
 
 Изменить в файле `docker-compose.debug.yml` данные [токена бота](https://t.me/botfather) и [id админа](https://t.me/userinfobot).
