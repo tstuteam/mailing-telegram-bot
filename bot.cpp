@@ -33,7 +33,8 @@ int main(const int argc, char const *const *argv) {
   bot.getEvents().onCommand(
       "start", [&bot](const TgBot::Message::Ptr &message) {
         const std::string welcome = "Hi! It's a mailing bot! "
-                                    "Try to register with `/register` command.";
+                                    "Try to register with `/register` command. "
+                                    "To unregister type `/unregister`.";
         bot.getApi().sendMessage(message->chat->id, welcome);
       });
 
@@ -72,14 +73,16 @@ int main(const int argc, char const *const *argv) {
         std::cout << "User with ID " << message->from->id << " send message\n";
         try {
           // if (message->photo.get() != nullptr) { sendPhoto(...) }
-          for (auto &&command : bot.getApi().getMyCommands()) {
+          auto commands = bot.getApi().getMyCommands();
+          for (auto &&command : commands) {
             if (StringTools::startsWith(message->text, "/" + command->command))
               return;
           }
           if (message->from->id == admin_id) {
             std::cout << "Admin wrote: " << message->text << '\n';
+            auto chunks = MailingApp::split_message(message->text);
             for (auto &&user_id : users)
-              for (auto &&msg : MailingApp::split_message(message->text))
+              for (auto &&msg : chunks)
                 bot.getApi().sendMessage(user_id, msg);
           }
         } catch (const TgBot::TgException &e) {
