@@ -46,7 +46,7 @@ std::vector<std::string> split_message(const std::string &message,
  * @param path Filepath to database file.
  * @return std::optional<std::set<MailingApp::UserId>> Users ID's.
  */
-std::optional<std::set<MailingApp::UserId>> read_db(const std::string &path);
+std::set<MailingApp::UserId> read_db(const std::string &path);
 
 /**
  * @brief Erasing database and writing new users to this database.
