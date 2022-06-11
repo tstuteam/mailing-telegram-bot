@@ -1,8 +1,13 @@
-LIBS = -lTgBot -lspdlog -lfmt -lboost_system -lssl -lcrypto -lpthread
-LDFLAGS  = ${LIBS}
-# CFLAGS = -std=c++20 -pedantic -Wall -Wextra -Os # release
-CFLAGS = -g -std=c++11 -pedantic -Wall -Wextra -O0 -DSPDLOG_SHARED_LIB -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL # debug
-CC = g++
+CXX = g++
+PKGS = spdlog 
+LIBS = -lTgBot -lboost_system -lssl -lcrypto -lpthread $(shell pkg-config --libs $(PKGS))
+CXXFLAGS = -std=c++20 -pedantic -Wall -Wextra $(shell pkg-config --cflags $(PKGS))
+DEBUG = true
+ifeq ($(DEBUG), true)
+	CXXFLAGS += -g -O0
+else
+	CXXFLAGS += -Os
+endif
 
 SRC = bot.cpp lib.cpp
 OBJ = ${SRC:.cpp=.o}
@@ -11,15 +16,16 @@ all: options bot
 
 options:
 	@echo bot build options:
-	@echo "CFLAGS   = ${CFLAGS}"
-	@echo "LDFLAGS  = ${LDFLAGS}"
-	@echo "CC       = ${CC}"
+	@echo "DEBUG		= ${DEBUG}"
+	@echo "CXXFLAGS   	= ${CXXFLAGS}"
+	@echo "LIBS  		= ${LIBS}"
+	@echo "CXX       	= ${CXX}"
 
 .cpp.o:
-	${CC} -c ${CFLAGS} $<
+	${CXX} -c ${CXXFLAGS} $<
 
 bot: $(OBJ)
-	${CC} -o $@ ${OBJ} ${LDFLAGS}
+	${CXX} -o $@ ${OBJ} ${LIBS}
 
 clean:
 	rm -f bot ${OBJ}
