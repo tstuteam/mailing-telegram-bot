@@ -80,7 +80,7 @@ int main(const int argc, char const *const *argv) {
           }
           if (message->from->id == admin_id) {
             std::cout << "Admin wrote: " << message->text << '\n';
-            auto chunks = MailingApp::split_message(message->text);
+            const auto chunks = MailingApp::split_message(message->text);
             for (auto &&user_id : users)
               for (auto &&msg : chunks)
                 bot.getApi().sendMessage(user_id, msg);
