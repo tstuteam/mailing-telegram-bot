@@ -1,7 +1,7 @@
-LIBS = -lTgBot -lboost_system -lssl -lcrypto -lpthread
+LIBS = -lTgBot -lspdlog -lfmt -lboost_system -lssl -lcrypto -lpthread
 LDFLAGS  = ${LIBS}
 # CFLAGS = -std=c++20 -pedantic -Wall -Wextra -Os # release
-CFLAGS = -g -std=c++20 -pedantic -Wall -Wextra -O0 # debug
+CFLAGS = -g -std=c++11 -pedantic -Wall -Wextra -O0 -DSPDLOG_SHARED_LIB -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL # debug
 CC = g++
 
 SRC = bot.cpp lib.cpp

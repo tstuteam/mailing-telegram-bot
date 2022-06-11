@@ -9,6 +9,7 @@
  *
  */
 
+#include <spdlog/spdlog.h>
 #include <tgbot/tgbot.h>
 
 #include <algorithm>
@@ -19,7 +20,7 @@
 
 int main(const int argc, char const *const *argv) {
   if (argc != 2) {
-    std::cout << "Usage: " << argv[0] << " <text file>\n";
+    spdlog::error("Usage: {} <text file>", argv[0]);
     return -1;
   }
 

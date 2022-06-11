@@ -3,7 +3,7 @@ LABEL Name=mailingtelegrambot Version=0.1
 
 RUN apt-get update && \
     apt-get install -y g++ make binutils cmake \
-    libssl-dev libboost-system-dev libcurl4-openssl-dev zlib1g-dev
+    libssl-dev libboost-system-dev libcurl4-openssl-dev zlib1g-dev libspdlog-dev
 
 COPY . /usr/src/bot
 
