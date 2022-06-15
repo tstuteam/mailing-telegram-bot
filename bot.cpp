@@ -2,7 +2,7 @@
  * @file main.cpp
  * @author Andrey Malov (ndrmlv@ya.ru)
  * @brief This is simple mailing program for telegram.
- * @version 0.1
+ * @version 0.1.1
  * @date 2022-06-02
  *
  * @copyright Copyright (c) 2022

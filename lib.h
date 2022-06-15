@@ -2,7 +2,7 @@
  * @file lib.h
  * @author Andrey Malov (ndrmlv@ya.ru)
  * @brief Simple library for string operations and other stuff.
- * @version 0.1
+ * @version 0.1.1
  * @date 2022-06-02
  *
  * @copyright Copyright (c) 2022
