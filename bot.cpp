@@ -23,10 +23,9 @@ int main(const int argc, char const *const *argv) {
     spdlog::error("Usage: {} <text file>", argv[0]);
     return -1;
   }
-  const std::string db_path = argv[1];
-  const std::string token = MailingApp::get_token("TELEGRAM_BOT_TOKEN");
-  const MailingApp::UserId admin_id =
-      MailingApp::get_admin_id("TELEGRAM_BOT_ADMIN_ID");
+  const auto db_path = argv[1];
+  const auto token = MailingApp::get_token("TELEGRAM_BOT_TOKEN");
+  const auto admin_id = MailingApp::get_admin_id("TELEGRAM_BOT_ADMIN_ID");
 
   auto users = MailingApp::read_db(db_path);
 
@@ -45,6 +44,7 @@ int main(const int argc, char const *const *argv) {
       msg = "you're successfully " + response + ".";
       MailingApp::update_db(db_path, users);
     }
+    spdlog::info("user with id - {}: {}", message->chat->id, msg);
     bot.getApi().sendMessage(message->chat->id, msg);
   };
   bot.getEvents().onCommand(
@@ -68,21 +68,23 @@ int main(const int argc, char const *const *argv) {
       });
   bot.getEvents().onAnyMessage(
       [&bot, &users, &admin_id](const TgBot::Message::Ptr &message) {
-        spdlog::debug("User with id {} send message.", message->from->id);
         try {
-          // if (message->photo.get() != nullptr) { sendPhoto(...) }
-          std::vector<std::string> commands = {"/start", "/register",
-                                               "/unregister"};
-          for (auto &&command : commands) {
-            if (StringTools::startsWith(message->text, command))
-              return;
-          }
-          if (message->from->id == admin_id) {
-            spdlog::debug("Admin wrote: {}", message->text);
-            const auto chunks = MailingApp::split_message(message->text);
-            for (auto &&user_id : users)
-              for (auto &&msg : chunks)
-                bot.getApi().sendMessage(user_id, msg);
+          if (message->photo.size() != 0) {
+            const auto images = message->photo.size();
+            spdlog::info("{} send {} images", message->from->id, images);
+          } else {
+            spdlog::info("{} wrote: {}", message->from->id, message->text);
+            const auto commands = {"/start", "/register", "/unregister"};
+            for (auto &&command : commands) {
+              if (StringTools::startsWith(message->text, command))
+                return;
+            }
+            if (message->from->id == admin_id) {
+              const auto chunks = MailingApp::split_message(message->text);
+              for (auto &&user_id : users)
+                for (auto &&msg : chunks)
+                  bot.getApi().sendMessage(user_id, msg);
+            }
           }
         } catch (const TgBot::TgException &e) {
           spdlog::warn("TgBot error: {}", e.what());
@@ -90,7 +92,7 @@ int main(const int argc, char const *const *argv) {
       });
 
   try {
-    spdlog::debug("Bot username: {}.", bot.getApi().getMe()->username);
+    spdlog::info("Bot username: {}.", bot.getApi().getMe()->username);
     bot.getApi().deleteWebhook();
     TgBot::TgLongPoll longPoll(bot);
     while (true) {
