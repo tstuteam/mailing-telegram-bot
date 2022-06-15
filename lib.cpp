@@ -18,6 +18,7 @@ std::set<MailingApp::UserId> MailingApp::read_db(const std::string &path) {
   std::set<UserId> result;
   std::copy(content.begin(), content.end(),
             std::inserter(result, result.begin()));
+  file.close();
   return result;
 }
 
@@ -27,6 +28,7 @@ void MailingApp::update_db(const std::string &path,
   std::vector<UserId> content(users.begin(), users.end());
   std::ostream_iterator<UserId> output_iterator(file, "\n");
   std::copy(content.begin(), content.end(), output_iterator);
+  file.close();
 }
 
 std::string MailingApp::get_token(const std::string &variable) {

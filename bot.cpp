@@ -70,8 +70,17 @@ int main(const int argc, char const *const *argv) {
       [&bot, &users, &admin_id](const TgBot::Message::Ptr &message) {
         try {
           if (message->photo.size() != 0) {
-            const auto images = message->photo.size();
-            spdlog::info("{} send {} images", message->from->id, images);
+            const auto image_id = message->photo.back()->fileId;
+            const auto image_info = bot.getApi().getFile(image_id);
+            const auto image_path = image_info->filePath;
+            const auto image_size = image_info->fileSize;
+            spdlog::info("Downloading image {} from {}", image_path,
+                         message->from->id);
+            const auto image = bot.getApi().downloadFile(image_path);
+            std::ofstream file("images/" + image_id + ".jpg",
+                               std::ofstream::binary);
+            file.write(image.c_str(), image_size);
+            file.close();
           } else {
             spdlog::info("{} wrote: {}", message->from->id, message->text);
             const auto commands = {"/start", "/register", "/unregister"};
