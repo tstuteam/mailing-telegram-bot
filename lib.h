@@ -55,6 +55,22 @@ std::set<MailingApp::UserId> read_db(const std::string &path);
  * @param users Users that is going to be written to database.
  */
 void update_db(const std::string &path, const std::set<UserId> &users);
+
+/**
+ * @brief Get the token from OS.
+ *
+ * @param variable Name of variable.
+ * @return std::string Bot token.
+ */
+std::string get_token(const std::string &variable);
+
+/**
+ * @brief Get the admin id from OS.
+ *
+ * @param variable Name of variable.
+ * @return UserId Admin id.
+ */
+UserId get_admin_id(const std::string &variable);
 } // namespace MailingApp
 
 #endif /* SRC_LIB_H */

@@ -9,23 +9,24 @@
 - Компилятор - `g++` или `clang++`
 - Система сборки - `Make`
 - Telegram Bot API - [tgbot-cpp](https://github.com/reo7sp/tgbot-cpp) (MIT LICENSE)
+- Fast C++ logging library - [spdlog](https://github.com/gabime/spdlog) (MIT LICENSE)
 
 ## Как собрать и запустить проект
 
-Клонировать проект и все его модули:
+Клонировать проект:
 
 ```console
-git clone --recursive git@github.com:tstuteam/mailing-telegram-bot.git
+git clone git@github.com:tstuteam/mailing-telegram-bot.git
 ```
 
-Установить [Docker](https://docs.docker.com/engine/install/).
-
-Изменить в файле `docker-compose.debug.yml` данные [токена бота](https://t.me/botfather) и [id админа](https://t.me/userinfobot).
+Установить зависимости.
 
 Запустить терминал и написать следующее:
 
 ```console
-docker-compose -f docker-compose.debug.yml up
+make all
+touch users.db
+TELEGRAM_BOT_TOKEN=<токен бота> TELEGRAM_BOT_ADMIN_ID=<user id админа> ./bot users.db
 ```
 
 ## Алгоритм работы
