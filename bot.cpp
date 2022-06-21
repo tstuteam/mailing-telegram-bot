@@ -88,11 +88,14 @@ int main(const int argc, char const *const *argv) {
               if (StringTools::startsWith(message->text, command))
                 return;
             }
+            const auto chunks = MailingApp::split_message(message->text);
             if (message->from->id == admin_id) {
-              const auto chunks = MailingApp::split_message(message->text);
               for (auto &&user_id : users)
                 for (auto &&msg : chunks)
                   bot.getApi().sendMessage(user_id, msg);
+            } else {
+              for (auto &&msg : chunks)
+                bot.getApi().sendMessage(message->from->id, msg);
             }
           }
         } catch (const TgBot::TgException &e) {

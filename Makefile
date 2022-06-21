@@ -3,7 +3,7 @@ PKGS = spdlog openssl
 LIBS = -lboost_system -lTgBot $(shell pkg-config --libs $(PKGS))
 CXXFLAGS = -std=c++20 -pedantic -Wall -Wextra $(shell pkg-config --cflags $(PKGS))
 
-DEBUG = true
+DEBUG = false
 ifeq ($(DEBUG), true)
 	CXXFLAGS += -g -O0
 else
