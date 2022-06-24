@@ -56,13 +56,13 @@ int main(const int argc, char const *const *argv) {
       });
   bot.getEvents().onCommand(
       "register",
-      [&bot, &users, &handle_registering](const TgBot::Message::Ptr &message) {
+      [&users, &handle_registering](const TgBot::Message::Ptr &message) {
         handle_registering(message, "registered",
                            !users.insert(message->from->id).second);
       });
   bot.getEvents().onCommand(
       "unregister",
-      [&bot, &users, &handle_registering](const TgBot::Message::Ptr &message) {
+      [&users, &handle_registering](const TgBot::Message::Ptr &message) {
         handle_registering(message, "unregistered",
                            users.erase(message->from->id) == 0);
       });
