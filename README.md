@@ -27,7 +27,7 @@
 Клонировать проект:
 
 ```console
-git clone git@github.com:tstuteam/mailing-telegram-bot.git
+git clone https://github.com/tstuteam/mailing-telegram-bot.git
 ```
 
 Установить зависимости.
